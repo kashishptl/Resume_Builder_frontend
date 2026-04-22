@@ -20,7 +20,7 @@ import axios from "axios";
 
 // Types
 interface Resume {
-  id: string;
+  resume_id: number;
   title?: string;
   jobTitle?: string;
   template?: string;
@@ -70,15 +70,16 @@ export default function MyResumes() {
     const fetchResumes = async () => {
       try {
         const token = localStorage.getItem("access_token");
-
         const res = await axios.get("http://127.0.0.1:5000/resume", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("Full response:", res.data);
 
         const data = res.data.data;
-        console.log(data);
+
+         console.log("Dataaaaa", data);
         setResumes(Array.isArray(data) ? data : [data]);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -202,7 +203,8 @@ export default function MyResumes() {
             }`}
           >
             {filteredResumes.map((resume, index) => (
-              <ResumeCard key={resume.id} resume={resume} index={index} />
+              console.log(),
+              <ResumeCard key={resume.resume_id} resume={resume} index={index} />
             ))}
           </div>
         ) : (

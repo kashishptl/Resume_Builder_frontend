@@ -1378,7 +1378,7 @@ export default function CreateResume() {
         }
 
         // ✅ Redirect with ID
-        router.push(`/resume-preview/${data.resume_id}`);
+        router.push(`/resume-preview?id=${data.resume_id}`);
       } catch (err) {
         console.error(err);
         alert(err instanceof Error ? err.message : "Something went wrong");

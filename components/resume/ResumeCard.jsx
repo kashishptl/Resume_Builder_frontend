@@ -53,7 +53,7 @@ export default function ResumeCard({ resume, index }) {
 
           {/* Quick actions overlay */}
           <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <Link href={`/resume-edit?id=${resume.id}`}>
+            <Link href={`/resume-edit?id=${resume.resume_id}`}>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -62,7 +62,7 @@ export default function ResumeCard({ resume, index }) {
                 <Edit3 className="w-4 h-4" />
               </motion.button>
             </Link>
-            <Link href={`/resume-preview?id=${resume.id}`}>
+            <Link href={`/resume-preview?id=${resume.resume_id}`}>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -127,7 +127,7 @@ export default function ResumeCard({ resume, index }) {
 
           {/* Actions */}
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-700/50">
-            <Link href={`/resume-edit?id=${resume.id}`} className="flex-1">
+            <Link href={`/resume-edit?id=${resume.resume_id}`} className="flex-1">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -137,7 +137,7 @@ export default function ResumeCard({ resume, index }) {
                 Edit
               </Button>
             </Link>
-            <Link href={`/resume-preview?id=${resume.id}`} className="flex-1">
+            <Link href={`/resume-preview?id=${resume.resume_id}`} className="flex-1">
               <Button 
                 size="sm" 
                 className="w-full bg-gradient-to-r from-blue-500 to-violet-600 hover:from-blue-600 hover:to-violet-700 text-white rounded-xl"

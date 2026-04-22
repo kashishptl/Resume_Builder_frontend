@@ -138,7 +138,7 @@ export default function ResumePreview() {
 
       const token = localStorage.getItem("access_token");
       let rawData: unknown = null;
-
+      console.log("ResumeId from URL:", resumeId);
       if (resumeId) {
         try {
           const headers: Record<string, string> = {};
