@@ -98,7 +98,7 @@ export default function ResumePreview() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       let rawData = null;
 
       if (resumeId) {

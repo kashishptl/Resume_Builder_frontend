@@ -29,17 +29,17 @@ export default function SignIn() {
     }
 
     try {
-      const res = await axios.post("http://127.0.0.1:5000/signin", {
+      const res = await axios.post("http://127.0.0.1:5000/login", {
         email,
         password,
       });
 
       // assuming backend returns token and user info
-      const token = res.data.token;
+      const token = res.data.access_token;
       const user = res.data.user; // e.g., { name: "John Doe", email: "john@example.com" }
 
       // Store token and user data in localStorage
-      localStorage.setItem("token", token);
+      localStorage.setItem("access_token", token);
       if (user) {
         localStorage.setItem("userName", user.name);
         localStorage.setItem("userEmail", user.email);

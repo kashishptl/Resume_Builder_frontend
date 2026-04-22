@@ -85,14 +85,14 @@ const useResumes = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       if (!token) {
         setError("Authentication token missing. Please log in again.");
         router.push("/login");
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/resumes`, {
+      const response = await axios.get(`${API_BASE_URL}/resume`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

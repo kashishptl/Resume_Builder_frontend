@@ -210,14 +210,14 @@ export default function ResumeEdit() {
       if (!resumeId) return;
 
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
         if (!token) {
           console.warn("No auth token available for resume load");
           return;
         }
 
         const res = await axios.get(
-          `http://127.0.0.1:5000/resume?id=${resumeId}`,
+          `http://127.0.0.1:5000/resume/${resumeId}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -358,7 +358,7 @@ export default function ResumeEdit() {
 
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       console.log("Token exists:", !!token);
       if (!token) {
         setSaveMessage({
@@ -447,7 +447,7 @@ export default function ResumeEdit() {
 
   const handlePreview = () => {
     if (resumeId) {
-      router.push(`/resume-preview?id=${resumeId}`);
+      router.push(`/resume-preview/${resumeId}`);
     } else {
       setSaveMessage({
         type: "error",

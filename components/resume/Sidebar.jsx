@@ -36,7 +36,7 @@ function useAuth() {
 
   useEffect(() => {
     // Read stored user data and token
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     const userName = localStorage.getItem('userName');
     const userEmail = localStorage.getItem('userEmail');
 

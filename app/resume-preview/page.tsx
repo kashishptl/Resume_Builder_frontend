@@ -94,7 +94,7 @@ const normalizeResumeData = (data: unknown): ResumePreviewData => {
 
 // Direct guest check – no external dependency
 const isGuest = (): boolean => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   // If token exists and is not the guest placeholder, user is logged in
   if (token && token !== 'guest' && token !== 'guest-session') {
     return false; // not a guest
@@ -136,7 +136,7 @@ export default function ResumePreview() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       let rawData: unknown = null;
 
       if (resumeId) {
@@ -147,7 +147,7 @@ export default function ResumePreview() {
           }
 
           const res = await fetch(
-            `http://127.0.0.1:5000/resume?id=${resumeId}`,
+            `http://127.0.0.1:5000/resume/${resumeId}`,
             { headers },
           );
 

@@ -1340,7 +1340,7 @@ export default function CreateResume() {
       setCurrentStep(currentStep + 1);
     } else {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
 
         const res = await fetch("http://127.0.0.1:5000/resume", {
           method: "POST",
@@ -1378,7 +1378,7 @@ export default function CreateResume() {
         }
 
         // ✅ Redirect with ID
-        router.push(`/resume-preview?/id=${data.resume_id}`);
+        router.push(`/resume-preview/${data.resume_id}`);
       } catch (err) {
         console.error(err);
         alert(err instanceof Error ? err.message : "Something went wrong");

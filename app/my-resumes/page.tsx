@@ -69,15 +69,16 @@ export default function MyResumes() {
   useEffect(() => {
     const fetchResumes = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
 
-        const res = await axios.get("http://127.0.0.1:5000/resumes", {
+        const res = await axios.get("http://127.0.0.1:5000/resume", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const data = res.data;
+        const data = res.data.data;
+        console.log(data);
         setResumes(Array.isArray(data) ? data : [data]);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -95,7 +96,7 @@ export default function MyResumes() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Sidebar />
+      <Sidebar customNavigation={undefined} />
 
       <main className="lg:ml-[60px] p-6 lg:p-8">
         {/* Header */}
