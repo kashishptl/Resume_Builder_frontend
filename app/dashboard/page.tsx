@@ -24,7 +24,7 @@ import axios from "axios";
 
 // Types
 interface Resume {
-  id: string;
+  resume_id: number| string;
   title: string;
   jobTitle: string;
   template: string;
@@ -33,7 +33,7 @@ interface Resume {
 }
 
 interface ApiResume {
-  id: number | string;
+  resume_id: number | string;
   title?: string;
   full_name?: string;
   job_title?: string;
@@ -99,13 +99,13 @@ const useResumes = () => {
         },
       });
 
-      let resumesData = response.data;
+      let resumesData = response.data.data;
       if (!Array.isArray(resumesData)) {
         resumesData = resumesData.resumes || [];
       }
 
       const formattedResumes: Resume[] = resumesData.map((item: ApiResume) => ({
-        id: item.id?.toString() || "",
+        resume_id: item.resume_id?.toString() || "",
         title: item.title || item.full_name || "Untitled Resume",
         jobTitle: item.job_title || "",
         template: item.template || "modern",
@@ -340,7 +340,7 @@ export default function Dashboard() {
         {!error && resumes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {resumes.map((resume, index) => (
-              <ResumeCard key={resume.id} resume={resume} index={index} />
+              <ResumeCard key={resume.resume_id} resume={resume} index={index} />
             ))}
 
             {/* Create new card - always shown */}
