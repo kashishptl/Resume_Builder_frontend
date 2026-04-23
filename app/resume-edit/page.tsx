@@ -42,6 +42,21 @@ interface Education {
   year: string;
 }
 
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  technologies: string;
+  link: string;
+}
+
+interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+}
+
 interface PersonalInfo {
   name: string;
   jobTitle: string;
@@ -57,6 +72,10 @@ interface FormData {
   experience: Experience[];
   education: Education[];
   skills: string[];
+  projects: Project[];
+  achievements: Achievement[];
+  languages: string[];
+  hobbies: string[];
 }
 
 type ResumeRaw = Record<string, unknown>;
@@ -91,6 +110,10 @@ const normalizeResumeData = (data: unknown): FormData => {
     rawData.education ?? personalInfo.education,
   );
   const skillsItems = ensureArray(rawData.skills ?? personalInfo.skills);
+  const projectsItems = ensureArray(rawData.projects);
+  const achievementsItems = ensureArray(rawData.achievements);
+  const languagesItems = ensureArray(rawData.languages);
+  const hobbiesItems = ensureArray(rawData.hobbies);
 
   return {
     personalInfo: {
@@ -128,6 +151,29 @@ const normalizeResumeData = (data: unknown): FormData => {
       };
     }),
     skills: skillsItems.filter(isNonEmptyString),
+    projects: projectsItems.map((proj, index) => {
+      const item =
+        typeof proj === "object" && proj !== null ? (proj as ResumeRaw) : {};
+      return {
+        id: typeof item.id === "number" ? item.id : Date.now() + index,
+        name: resolveString(item.name, item.project_name),
+        description: resolveString(item.description),
+        technologies: resolveString(item.technologies, item.tech_stack),
+        link: resolveString(item.link, item.url),
+      };
+    }),
+    achievements: achievementsItems.map((ach, index) => {
+      const item =
+        typeof ach === "object" && ach !== null ? (ach as ResumeRaw) : {};
+      return {
+        id: typeof item.id === "number" ? item.id : Date.now() + index,
+        title: resolveString(item.title),
+        description: resolveString(item.description),
+        date: resolveString(item.date, item.year),
+      };
+    }),
+    languages: languagesItems.filter(isNonEmptyString),
+    hobbies: hobbiesItems.filter(isNonEmptyString),
   };
 };
 
@@ -136,6 +182,10 @@ interface ExpandedSections {
   experience: boolean;
   education: boolean;
   skills: boolean;
+  projects: boolean;
+  achievements: boolean;
+  languages: boolean;
+  hobbies: boolean;
 }
 
 export default function ResumeEdit() {
@@ -150,6 +200,10 @@ export default function ResumeEdit() {
     experience: true,
     education: true,
     skills: true,
+    projects: true,
+    achievements: true,
+    languages: true,
+    hobbies: true,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{
@@ -202,8 +256,29 @@ export default function ResumeEdit() {
       "Docker",
       "GraphQL",
     ],
+    projects: [
+      {
+        id: 1,
+        name: "AI Resume Builder",
+        description: "Built an AI-powered resume builder with Next.js and Python backend.",
+        technologies: "Next.js, TypeScript, Tailwind, FastAPI",
+        link: "https://github.com/example/resume-builder",
+      },
+    ],
+    achievements: [
+      {
+        id: 1,
+        title: "Hackathon Winner",
+        description: "Won first prize at TechCrunch Disrupt 2023 for an innovative fintech solution.",
+        date: "2023",
+      },
+    ],
+    languages: ["English (Native)", "Hindi (Fluent)", "Spanish (Basic)"],
+    hobbies: ["Chess", "Open Source Contributions", "Photography"],
   });
   const [newSkill, setNewSkill] = useState("");
+  const [newLanguage, setNewLanguage] = useState("");
+  const [newHobby, setNewHobby] = useState("");
 
   useEffect(() => {
     const loadResumeData = async () => {
@@ -246,6 +321,7 @@ export default function ResumeEdit() {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Personal Info handlers
   const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -253,6 +329,7 @@ export default function ResumeEdit() {
     }));
   };
 
+  // Experience handlers
   const updateExperience = (
     id: number,
     field: keyof Experience,
@@ -289,6 +366,7 @@ export default function ResumeEdit() {
     }));
   };
 
+  // Education handlers
   const updateEducation = (
     id: number,
     field: keyof Education,
@@ -324,6 +402,7 @@ export default function ResumeEdit() {
     }));
   };
 
+  // Skills handlers
   const addSkill = (skill: string) => {
     const trimmedSkill = skill.trim();
     if (trimmedSkill && !formData.skills.includes(trimmedSkill)) {
@@ -342,12 +421,120 @@ export default function ResumeEdit() {
     }));
   };
 
-  const handleSave = async () => {
-    console.log("handleSave called");
-    console.log("Current resumeId:", resumeId);
+  // Projects handlers
+  const updateProject = (
+    id: number,
+    field: keyof Project,
+    value: string,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((proj) =>
+        proj.id === id ? { ...proj, [field]: value } : proj,
+      ),
+    }));
+  };
 
+  const addProject = () => {
+    setFormData((prev) => ({
+      ...prev,
+      projects: [
+        ...prev.projects,
+        {
+          id: Date.now(),
+          name: "",
+          description: "",
+          technologies: "",
+          link: "",
+        },
+      ],
+    }));
+  };
+
+  const removeProject = (id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      projects: prev.projects.filter((proj) => proj.id !== id),
+    }));
+  };
+
+  // Achievements handlers
+  const updateAchievement = (
+    id: number,
+    field: keyof Achievement,
+    value: string,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      achievements: prev.achievements.map((ach) =>
+        ach.id === id ? { ...ach, [field]: value } : ach,
+      ),
+    }));
+  };
+
+  const addAchievement = () => {
+    setFormData((prev) => ({
+      ...prev,
+      achievements: [
+        ...prev.achievements,
+        {
+          id: Date.now(),
+          title: "",
+          description: "",
+          date: "",
+        },
+      ],
+    }));
+  };
+
+  const removeAchievement = (id: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      achievements: prev.achievements.filter((ach) => ach.id !== id),
+    }));
+  };
+
+  // Languages handlers
+  const addLanguage = (lang: string) => {
+    const trimmed = lang.trim();
+    if (trimmed && !formData.languages.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        languages: [...prev.languages, trimmed],
+      }));
+      setNewLanguage("");
+    }
+  };
+
+  const removeLanguage = (lang: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      languages: prev.languages.filter((l) => l !== lang),
+    }));
+  };
+
+  // Hobbies handlers
+  const addHobby = (hobby: string) => {
+    const trimmed = hobby.trim();
+    if (trimmed && !formData.hobbies.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        hobbies: [...prev.hobbies, trimmed],
+      }));
+      setNewHobby("");
+    }
+  };
+
+  const removeHobby = (hobby: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      hobbies: prev.hobbies.filter((h) => h !== hobby),
+    }));
+  };
+
+  // Save handler with all fields
+  const handleSave = async () => {
     if (!resumeId) {
-      console.warn("Resume ID is missing!");
       setSaveMessage({
         type: "error",
         text: "Resume ID is missing - please check URL",
@@ -359,7 +546,6 @@ export default function ResumeEdit() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("access_token");
-      console.log("Token exists:", !!token);
       if (!token) {
         setSaveMessage({
           type: "error",
@@ -390,13 +576,23 @@ export default function ResumeEdit() {
           year: edu.year,
         })),
         skills: formData.skills,
+        projects: formData.projects.map((proj) => ({
+          name: proj.name,
+          description: proj.description,
+          technologies: proj.technologies,
+          link: proj.link,
+        })),
+        achievements: formData.achievements.map((ach) => ({
+          title: ach.title,
+          description: ach.description,
+          date: ach.date,
+        })),
+        languages: formData.languages,
+        hobbies: formData.hobbies,
         template: template,
       };
 
       const url = `http://127.0.0.1:5000/resume/${resumeId}`;
-      console.log("API URL:", url);
-      console.log("Saving resume data:", JSON.stringify(apiData, null, 2));
-
       const response = await axios.put(url, apiData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -404,18 +600,11 @@ export default function ResumeEdit() {
         },
       });
 
-      console.log("Response status:", response.status);
-      const responseData = response.data;
-      console.log("Response data:", responseData);
-
-      console.log("Resume saved successfully:", responseData);
+      console.log("Resume saved successfully:", response.data);
       setSaveMessage({ type: "success", text: "Resume saved successfully!" });
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (err) {
       console.error("Failed to save resume:", err);
-      if (err instanceof Error) {
-        console.error("Error message:", err.message);
-      }
       setSaveMessage({
         type: "error",
         text:
@@ -431,8 +620,6 @@ export default function ResumeEdit() {
 
   const handleAIImprove = async (content: string) => {
     console.log("AI improving content:", content);
-    // TODO: Integrate with actual AI API endpoint
-    // For now, just a placeholder
     setSaveMessage({
       type: "success",
       text: "AI improvement feature coming soon!",
@@ -441,7 +628,6 @@ export default function ResumeEdit() {
   };
 
   const handleDownload = () => {
-    // Trigger browser print dialog which allows saving as PDF
     window.print();
   };
 
@@ -556,7 +742,6 @@ export default function ResumeEdit() {
           </div>
         </div>
 
-        {/* Template selector */}
         {showTemplates && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -568,7 +753,6 @@ export default function ResumeEdit() {
           </motion.div>
         )}
 
-        {/* Save notification */}
         {saveMessage && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -591,102 +775,38 @@ export default function ResumeEdit() {
           <div className="space-y-4">
             {/* Personal Info */}
             <div>
-              <SectionHeader
-                title="Personal Information"
-                section="personal"
-                icon={Sparkles}
-              />
+              <SectionHeader title="Personal Information" section="personal" icon={Sparkles} />
               {expandedSections.personal && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 space-y-4"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Full Name
-                      </label>
-                      <Input
-                        value={formData.personalInfo.name}
-                        onChange={(e) =>
-                          updatePersonalInfo("name", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Full Name</label>
+                      <Input value={formData.personalInfo.name} onChange={(e) => updatePersonalInfo("name", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Job Title
-                      </label>
-                      <Input
-                        value={formData.personalInfo.jobTitle}
-                        onChange={(e) =>
-                          updatePersonalInfo("jobTitle", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Job Title</label>
+                      <Input value={formData.personalInfo.jobTitle} onChange={(e) => updatePersonalInfo("jobTitle", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Email
-                      </label>
-                      <Input
-                        value={formData.personalInfo.email}
-                        onChange={(e) =>
-                          updatePersonalInfo("email", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Email</label>
+                      <Input value={formData.personalInfo.email} onChange={(e) => updatePersonalInfo("email", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Phone
-                      </label>
-                      <Input
-                        value={formData.personalInfo.phone}
-                        onChange={(e) =>
-                          updatePersonalInfo("phone", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Phone</label>
+                      <Input value={formData.personalInfo.phone} onChange={(e) => updatePersonalInfo("phone", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Location
-                      </label>
-                      <Input
-                        value={formData.personalInfo.location}
-                        onChange={(e) =>
-                          updatePersonalInfo("location", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Location</label>
+                      <Input value={formData.personalInfo.location} onChange={(e) => updatePersonalInfo("location", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-1">
-                        Website
-                      </label>
-                      <Input
-                        value={formData.personalInfo.website}
-                        onChange={(e) =>
-                          updatePersonalInfo("website", e.target.value)
-                        }
-                        className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                      />
+                      <label className="block text-sm text-slate-400 mb-1">Website</label>
+                      <Input value={formData.personalInfo.website} onChange={(e) => updatePersonalInfo("website", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-slate-400 mb-1">
-                      Summary
-                    </label>
-                    <Textarea
-                      value={formData.personalInfo.summary}
-                      onChange={(e) =>
-                        updatePersonalInfo("summary", e.target.value)
-                      }
-                      className="bg-slate-700/50 border-slate-600 text-white rounded-xl min-h-[100px]"
-                    />
+                    <label className="block text-sm text-slate-400 mb-1">Summary</label>
+                    <Textarea value={formData.personalInfo.summary} onChange={(e) => updatePersonalInfo("summary", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl min-h-[100px]" />
                   </div>
                 </motion.div>
               )}
@@ -694,84 +814,29 @@ export default function ResumeEdit() {
 
             {/* Experience */}
             <div>
-              <SectionHeader
-                title="Work Experience"
-                section="experience"
-                icon={Sparkles}
-              />
+              <SectionHeader title="Work Experience" section="experience" icon={Sparkles} />
               {expandedSections.experience && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 space-y-4"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
                   {formData.experience.map((exp, index) => (
-                    <div
-                      key={exp.id}
-                      className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4"
-                    >
+                    <div key={exp.id} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-400">
-                          Experience {index + 1}
-                        </span>
+                        <span className="text-sm text-slate-400">Experience {index + 1}</span>
                         {formData.experience.length > 1 && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => removeExperience(exp.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8"
-                          >
+                          <Button size="icon" variant="ghost" onClick={() => removeExperience(exp.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <Input
-                          placeholder="Company"
-                          value={exp.company}
-                          onChange={(e) =>
-                            updateExperience(exp.id, "company", e.target.value)
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                        />
-                        <Input
-                          placeholder="Role"
-                          value={exp.role}
-                          onChange={(e) =>
-                            updateExperience(exp.id, "role", e.target.value)
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                        />
-                        <Input
-                          placeholder="Duration"
-                          value={exp.duration}
-                          onChange={(e) =>
-                            updateExperience(exp.id, "duration", e.target.value)
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl md:col-span-2"
-                        />
+                        <Input placeholder="Company" value={exp.company} onChange={(e) => updateExperience(exp.id, "company", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Role" value={exp.role} onChange={(e) => updateExperience(exp.id, "role", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Duration" value={exp.duration} onChange={(e) => updateExperience(exp.id, "duration", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl md:col-span-2" />
                       </div>
-                      <Textarea
-                        placeholder="Description"
-                        value={exp.description}
-                        onChange={(e) =>
-                          updateExperience(
-                            exp.id,
-                            "description",
-                            e.target.value,
-                          )
-                        }
-                        className="mt-3 bg-slate-700/50 border-slate-600 text-white rounded-xl min-h-[80px]"
-                      />
+                      <Textarea placeholder="Description" value={exp.description} onChange={(e) => updateExperience(exp.id, "description", e.target.value)} className="mt-3 bg-slate-700/50 border-slate-600 text-white rounded-xl min-h-[80px]" />
                     </div>
                   ))}
-                  <Button
-                    onClick={addExperience}
-                    variant="outline"
-                    className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Experience
+                  <Button onClick={addExperience} variant="outline" className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl">
+                    <Plus className="w-4 h-4 mr-2" /> Add Experience
                   </Button>
                 </motion.div>
               )}
@@ -779,76 +844,28 @@ export default function ResumeEdit() {
 
             {/* Education */}
             <div>
-              <SectionHeader
-                title="Education"
-                section="education"
-                icon={Sparkles}
-              />
+              <SectionHeader title="Education" section="education" icon={Sparkles} />
               {expandedSections.education && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 space-y-4"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
                   {formData.education.map((edu, index) => (
-                    <div
-                      key={edu.id}
-                      className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4"
-                    >
+                    <div key={edu.id} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-400">
-                          Education {index + 1}
-                        </span>
+                        <span className="text-sm text-slate-400">Education {index + 1}</span>
                         {formData.education.length > 1 && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => removeEducation(edu.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8"
-                          >
+                          <Button size="icon" variant="ghost" onClick={() => removeEducation(edu.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <Input
-                          placeholder="Degree"
-                          value={edu.degree}
-                          onChange={(e) =>
-                            updateEducation(edu.id, "degree", e.target.value)
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                        />
-                        <Input
-                          placeholder="Institution"
-                          value={edu.institution}
-                          onChange={(e) =>
-                            updateEducation(
-                              edu.id,
-                              "institution",
-                              e.target.value,
-                            )
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                        />
-                        <Input
-                          placeholder="Year"
-                          value={edu.year}
-                          onChange={(e) =>
-                            updateEducation(edu.id, "year", e.target.value)
-                          }
-                          className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                        />
+                        <Input placeholder="Degree" value={edu.degree} onChange={(e) => updateEducation(edu.id, "degree", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Institution" value={edu.institution} onChange={(e) => updateEducation(edu.id, "institution", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Year" value={edu.year} onChange={(e) => updateEducation(edu.id, "year", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
                       </div>
                     </div>
                   ))}
-                  <Button
-                    onClick={addEducation}
-                    variant="outline"
-                    className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Education
+                  <Button onClick={addEducation} variant="outline" className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl">
+                    <Plus className="w-4 h-4 mr-2" /> Add Education
                   </Button>
                 </motion.div>
               )}
@@ -858,35 +875,110 @@ export default function ResumeEdit() {
             <div>
               <SectionHeader title="Skills" section="skills" icon={Sparkles} />
               {expandedSections.skills && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 space-y-4"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
                   <div className="flex gap-2">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addSkill(newSkill)}
-                      placeholder="Add a skill..."
-                      className="bg-slate-700/50 border-slate-600 text-white rounded-xl"
-                    />
-                    <Button
-                      onClick={() => addSkill(newSkill)}
-                      className="bg-blue-500 hover:bg-blue-600 rounded-xl px-6"
-                    >
-                      Add
-                    </Button>
+                    <Input value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSkill(newSkill)} placeholder="Add a skill..." className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                    <Button onClick={() => addSkill(newSkill)} className="bg-blue-500 hover:bg-blue-600 rounded-xl px-6">Add</Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {formData.skills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 transition-colors"
-                        onClick={() => removeSkill(skill)}
-                      >
-                        {skill}
-                        <Trash2 className="w-3 h-3 ml-2" />
+                      <Badge key={skill} className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 transition-colors" onClick={() => removeSkill(skill)}>
+                        {skill} <Trash2 className="w-3 h-3 ml-2" />
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Projects */}
+            <div>
+              <SectionHeader title="Projects" section="projects" icon={Sparkles} />
+              {expandedSections.projects && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
+                  {formData.projects.map((proj, index) => (
+                    <div key={proj.id} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-slate-400">Project {index + 1}</span>
+                        <Button size="icon" variant="ghost" onClick={() => removeProject(proj.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3">
+                        <Input placeholder="Project Name" value={proj.name} onChange={(e) => updateProject(proj.id, "name", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Textarea placeholder="Description" value={proj.description} onChange={(e) => updateProject(proj.id, "description", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Technologies (comma separated)" value={proj.technologies} onChange={(e) => updateProject(proj.id, "technologies", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Project Link (optional)" value={proj.link} onChange={(e) => updateProject(proj.id, "link", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                      </div>
+                    </div>
+                  ))}
+                  <Button onClick={addProject} variant="outline" className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl">
+                    <Plus className="w-4 h-4 mr-2" /> Add Project
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Achievements */}
+            <div>
+              <SectionHeader title="Achievements" section="achievements" icon={Sparkles} />
+              {expandedSections.achievements && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
+                  {formData.achievements.map((ach, index) => (
+                    <div key={ach.id} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-slate-400">Achievement {index + 1}</span>
+                        <Button size="icon" variant="ghost" onClick={() => removeAchievement(ach.id)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Input placeholder="Title" value={ach.title} onChange={(e) => updateAchievement(ach.id, "title", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                        <Input placeholder="Date / Year" value={ach.date} onChange={(e) => updateAchievement(ach.id, "date", e.target.value)} className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                      </div>
+                      <Textarea placeholder="Description" value={ach.description} onChange={(e) => updateAchievement(ach.id, "description", e.target.value)} className="mt-3 bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                    </div>
+                  ))}
+                  <Button onClick={addAchievement} variant="outline" className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-xl">
+                    <Plus className="w-4 h-4 mr-2" /> Add Achievement
+                  </Button>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Languages */}
+            <div>
+              <SectionHeader title="Languages" section="languages" icon={Sparkles} />
+              {expandedSections.languages && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
+                  <div className="flex gap-2">
+                    <Input value={newLanguage} onChange={(e) => setNewLanguage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addLanguage(newLanguage)} placeholder="Add a language (e.g., Spanish - Fluent)" className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                    <Button onClick={() => addLanguage(newLanguage)} className="bg-blue-500 hover:bg-blue-600 rounded-xl px-6">Add</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.languages.map((lang) => (
+                      <Badge key={lang} className="bg-green-500/20 text-green-300 border border-green-500/30 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 transition-colors" onClick={() => removeLanguage(lang)}>
+                        {lang} <Trash2 className="w-3 h-3 ml-2" />
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Hobbies */}
+            <div>
+              <SectionHeader title="Hobbies & Interests" section="hobbies" icon={Sparkles} />
+              {expandedSections.hobbies && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-4 space-y-4">
+                  <div className="flex gap-2">
+                    <Input value={newHobby} onChange={(e) => setNewHobby(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addHobby(newHobby)} placeholder="Add a hobby (e.g., Chess, Reading)" className="bg-slate-700/50 border-slate-600 text-white rounded-xl" />
+                    <Button onClick={() => addHobby(newHobby)} className="bg-blue-500 hover:bg-blue-600 rounded-xl px-6">Add</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.hobbies.map((hobby) => (
+                      <Badge key={hobby} className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 transition-colors" onClick={() => removeHobby(hobby)}>
+                        {hobby} <Trash2 className="w-3 h-3 ml-2" />
                       </Badge>
                     ))}
                   </div>
@@ -898,12 +990,7 @@ export default function ResumeEdit() {
           {/* Preview */}
           <div className="hidden xl:block sticky top-32 h-fit">
             <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 overflow-auto max-h-[calc(100vh-160px)]">
-              <div
-                style={{
-                  transform: `scale(${zoom})`,
-                  transformOrigin: "top center",
-                }}
-              >
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}>
                 <ResumePreviewComponent data={formData} template={template} />
               </div>
             </div>
